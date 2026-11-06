@@ -1,0 +1,20 @@
+# Apex Global Technologies - Employee Handbook & Operations Policy
+
+## Chapter 1: Remote Work and Home Office Reimbursement
+Apex Global Technologies supports a flexible hybrid workplace culture. Full-time employees are eligible for the following remote work benefits:
+
+### Home Office Equipment Allowance:
+- Every new employee receives a one-time reimbursement of up to $1,200 for ergonomic desk setup, dual monitors, or high-definition webcams.
+- Receipts must be submitted within the first 60 days of employment via the corporate expense portal.
+- Annual internet stipend: Employees working more than 3 days per week remotely receive a monthly credit of $75.
+
+## Chapter 2: Information Security and Data Protection
+All company laptops must run disk-level encryption (BitLocker or FileVault) and use two-factor authentication (2FA) for single sign-on (SSO).
+- **Customer Data Protection**: Sensitive customer files (PII) must never be uploaded to unapproved public cloud drives or consumer AI tools.
+- **VPN Requirement**: Connecting to production databases or internal staging clusters requires connecting through the Apex WireGuard VPN tunnel.
+
+## Chapter 3: Paid Time Off (PTO) and Health Benefits
+- **Vacation Time**: Full-time employees accrue 22 days of PTO per calendar year, increasing to 26 days after 3 years of service.
+- **Sick Leave**: 10 paid sick days per year, separate from vacation PTO.
+- **Parental Leave**: 16 weeks of 100% paid parental leave for primary and secondary caregivers, eligible from day one of employment.
+- **Continuing Education Stipend**: $2,500 annually per employee for conferences, technical certifications, and books.

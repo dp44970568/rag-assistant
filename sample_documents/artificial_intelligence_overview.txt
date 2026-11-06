@@ -1,0 +1,32 @@
+# Artificial Intelligence and Retrieval-Augmented Generation (RAG) Overview
+
+## 1. What is Retrieval-Augmented Generation (RAG)?
+Retrieval-Augmented Generation (RAG) is an architectural pattern that combines an information retrieval system with a generative large language model (LLM). Instead of relying exclusively on the model's static training data, RAG retrieves relevant document passages from external knowledge repositories and supplies them directly into the context window of the prompt.
+
+### Key Benefits of RAG:
+1. **Mitigates Hallucinations**: Grounds LLM responses in verifiable factual context.
+2. **Current Knowledge**: Enables real-time access to updated documentation, company policies, or internal databases without costly retraining.
+3. **Data Security & Privacy**: Sensitive corporate documents stay within internal vector indexes rather than being fine-tuned into public models.
+4. **Source Attribution & Citations**: Enables exact chunk tracing and clickable citations back to the source text.
+
+## 2. Core Components of a Modern RAG Architecture
+A standard RAG pipeline consists of the following core stages:
+
+### Step 1: Document Ingestion and Parsing
+Unstructured source files (PDFs, Word documents, Markdown, spreadsheets, and source code) are parsed into standardized text streams while capturing metadata such as author, page count, and document timestamps.
+
+### Step 2: Semantic Chunking
+Raw text documents are divided into manageable chunks using recursive character chunking or semantic boundary detection. A typical configuration utilizes 400 to 1000 characters per chunk with a 10% to 20% overlap to preserve context across chunk boundaries.
+
+### Step 3: Vector Embeddings & Indexing
+Each chunk is transformed into a dense high-dimensional vector using an embedding model (e.g., Google text-embedding-004, OpenAI text-embedding-3, or HuggingFace MiniLM), or indexed with TF-IDF/BM25 for lexical matching. The vectors are indexed in a vector database for millisecond-speed nearest-neighbor searches.
+
+### Step 4: Semantic Retrieval & Ranking
+When a user submits a query, the query is vectorized and compared against the knowledge index using cosine similarity or dot product. The top-K most relevant chunks exceeding a similarity threshold are selected.
+
+### Step 5: Augmented Generation (Inference)
+The retrieved chunks and user question are wrapped in a system prompt instruction and sent to the LLM (e.g., Gemini 1.5 Pro, GPT-4o, or Claude). The LLM synthesizes a coherent answer referencing the provided passages.
+
+## 3. Comparison: RAG vs. Fine-Tuning
+- **RAG**: Best for dynamic, rapidly changing knowledge bases, customer support manuals, and strict citation requirements. Requires zero GPU training hours and provides instant updates upon uploading new files.
+- **Fine-Tuning**: Best for altering model tone, style, specialized syntax, or teaching a specific output schema. Expensive and does not prevent factual hallucinations on unseen facts.

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG AI Assistant | High-Performance Document Knowledge Engine</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  
+  <!-- Marked.js for Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Left Sidebar: Knowledge Base & RAG Controls -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <i data-lucide="brain" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">RAG Assistant</div>
+            <span class="brand-badge">FastAPI • No Streamlit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- File Ingestion Dropzone -->
+        <div>
+          <input type="file" id="fileInput" multiple style="display: none;" accept=".pdf,.docx,.txt,.md,.csv,.json,.py,.js,.html">
+          <div id="dropzone" class="dropzone">
+            <i data-lucide="upload-cloud" class="dropzone-icon w-7 h-7"></i>
+            <div style="font-size: 0.85rem; font-weight: 600;">Drop documents here</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim);">PDF, DOCX, TXT, MD, CSV, JSON</div>
+          </div>
+          
+          <button id="loadSampleBtn" class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Load Sample Knowledge
+          </button>
+        </div>
+
+        <!-- Filter Documents Dropdown -->
+        <div class="control-group">
+          <label class="control-label">Search Scope</label>
+          <select id="docFilterSelect">
+            <option value="">All Knowledge Base</option>
+          </select>
+        </div>
+
+        <!-- RAG Fine-tuning Parameters -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Top-K Chunks</span>
+            <span id="topKVal" class="slider-val">4</span>
+          </div>
+          <input type="range" id="topKSlider" min="1" max="10" value="4">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Similarity Threshold</span>
+            <span id="thresholdVal" class="slider-val">0.15</span>
+          </div>
+          <input type="range" id="thresholdSlider" min="0.0" max="0.8" step="0.05" value="0.15">
+        </div>
+
+        <!-- Documents List -->
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Indexed Documents</span>
+            <span id="totalDocsBadge" class="brand-badge">0</span>
+          </div>
+          <div id="docList" style="flex: 1; overflow-y: auto;">
+            <!-- Document items injected via JS -->
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Workspace -->
+    <main class="chat-main">
+      <!-- Top Navigation Bar -->
+      <header class="chat-header">
+        <div class="header-stats">
+          <div id="providerBadge" class="status-pill">
+            <span class="status-dot amber"></span>
+            <span>Offline Synthesizer</span>
+          </div>
+          <div class="status-pill">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span>Chunks: <b id="totalChunksBadge">0</b></span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="openSettingsBtn" class="btn-icon" title="Engine Settings">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+          <button id="exportChatBtn" class="btn-icon" title="Export Conversation (Markdown)">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
+          <button id="clearChatBtn" class="btn-icon" title="Clear Conversation">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+          <button id="themeToggleBtn" class="btn-icon" title="Toggle Dark/Light Mode">
+            <i data-lucide="sun" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Messages Container -->
+      <div id="chatMessages" class="chat-messages">
+        <!-- Welcome Hero View -->
+        <div id="welcomeHero" class="welcome-hero">
+          <div class="hero-icon">
+            <i data-lucide="sparkles" class="w-8 h-8"></i>
+          </div>
+          <h2 class="hero-title">RAG AI Assistant</h2>
+          <p class="hero-subtitle">
+            A fast, modern Retrieval-Augmented Generation assistant built with <b>FastAPI</b>, 
+            <b>TF-IDF / Neural Vector Search</b>, and live <b>SSE token streaming</b> — zero Streamlit latency or page reloads.
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-card" onclick="askPreset('What is Retrieval-Augmented Generation (RAG) and what are its key benefits?')">
+              <h4><i data-lucide="help-circle" class="w-4 h-4 text-indigo-400"></i> What is RAG?</h4>
+              <p>Explore the architecture, benefits, and differences from fine-tuning.</p>
+            </div>
+            <div class="feature-card" onclick="askPreset('What are the core components of a modern RAG architecture?')">
+              <h4><i data-lucide="git-merge" class="w-4 h-4 text-emerald-400"></i> Core RAG Stages</h4>
+              <p>Learn about document ingestion, semantic chunking, and retrieval ranking.</p>
+            </div>
+            <div class="feature-card" onclick="askPreset('What is the home office allowance and remote work policy?')">
+              <h4><i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i> Company Policies</h4>
+              <p>Ask about equipment reimbursement, internet stipends, and PTO.</p>
+            </div>
+            <div class="feature-card" onclick="askPreset('Compare RAG vs Fine-Tuning for real-world enterprise use cases.')">
+              <h4><i data-lucide="layers" class="w-4 h-4 text-rose-400"></i> RAG vs Fine-Tuning</h4>
+              <p>Understand when to retrieve vs when to fine-tune foundational weights.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Chat Input Bar -->
+      <footer class="chat-footer">
+        <div class="input-container">
+          <textarea 
+            id="promptInput" 
+            class="chat-input" 
+            placeholder="Ask a question about your uploaded documents... (Press Enter to send, Shift+Enter for new line)"
+            rows="1"
+          ></textarea>
+          <button id="sendBtn" class="btn-send" title="Send Question">
+            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div style="text-align: center; font-size: 0.72rem; color: var(--text-dim); margin-top: 8px;">
+          RAG AI Assistant • Instant local vector search with multi-provider LLM support (Gemini, OpenAI, Groq, Ollama)
+        </div>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i> Assistant & LLM Configuration
+        </h3>
+        <button id="closeSettingsBtn" class="btn-icon"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="control-group">
+          <label class="control-label">LLM Provider</label>
+          <select id="settingProvider">
+            <option value="offline">Offline Synthesizer (No API Key Required)</option>
+            <option value="gemini">Google Gemini (Gemini 1.5 Flash / Pro)</option>
+            <option value="openai">OpenAI (GPT-4o, GPT-4o-mini)</option>
+            <option value="groq">Groq (Llama 3.3 70B - Ultra Fast)</option>
+            <option value="ollama">Ollama (Local Offline LLM)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Model Name</label>
+          <input type="text" id="settingModel" placeholder="e.g. gemini-1.5-flash, gpt-4o-mini, llama-3.3-70b-versatile">
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Google Gemini API Key</label>
+          <input type="password" id="settingGeminiKey" placeholder="AIzaSy...">
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">OpenAI API Key</label>
+          <input type="password" id="settingOpenaiKey" placeholder="sk-proj-...">
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Groq API Key</label>
+          <input type="password" id="settingGroqKey" placeholder="gsk_...">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="control-group">
+            <label class="control-label">Chunk Size (chars)</label>
+            <input type="number" id="settingChunkSize" value="500" min="100" max="2000">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Chunk Overlap (chars)</label>
+            <input type="number" id="settingChunkOverlap" value="100" min="0" max="500">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">System Instruction Prompt</label>
+          <textarea id="settingSystemPrompt" rows="3" placeholder="Custom instructions for the RAG assistant..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+        <button id="saveSettingsBtn" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Chunk Inspector Modal -->
+  <div id="chunkModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 750px;">
+      <div class="modal-header">
+        <h3 id="chunkModalTitle" style="font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="layers" class="w-5 h-5 text-indigo-400"></i> Document Chunks
+        </h3>
+        <button id="closeChunkModalBtn" class="btn-icon"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="chunkModalBody" class="modal-body" style="max-height: 65vh;">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Citation Drawer Modal -->
+  <div id="sourceModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="sourceModalTitle" style="font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="file-text" class="w-5 h-5 text-indigo-400"></i> Source Citation Details
+        </h3>
+        <button id="closeSourceModalBtn" class="btn-icon"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="sourceModalBody" class="modal-body">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
